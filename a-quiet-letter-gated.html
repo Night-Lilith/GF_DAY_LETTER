@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Quiet Letter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1F1A17;
+    --paper:#F7F2E8;
+    --text:#3B2D2A;
+    --accent:#B28A5B;
+    --accent-soft:#D9BE97;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 100% 55% at 50% 0%, #29211c 0%, var(--bg) 60%);
+    color:var(--text);
+    font-family:'Cormorant Garamond', serif;
+    overflow-x:hidden;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; }
+  }
+
+  /* quiet background: stars + moon, always present */
+  .stars{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+  .stars span{
+    position:absolute; width:2px; height:2px; border-radius:50%;
+    background:var(--paper); opacity:0.35;
+    animation:twinkle 5s ease-in-out infinite;
+  }
+  @keyframes twinkle{ 0%,100%{opacity:0.18;} 50%{opacity:0.6;} }
+  .moon{
+    position:fixed; top:5%; right:7%; width:54px; height:54px; border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #FBF3DC, #E8D6A8 70%);
+    box-shadow:0 0 40px 6px rgba(243,230,198,0.16);
+    z-index:0;
+  }
+
+  /* ---------------- INTRO / GATE SCREEN ---------------- */
+  .intro-screen{
+    position:relative;
+    z-index:2;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:6vh 6vw;
+    transition:opacity 0.7s ease, transform 0.7s ease;
+  }
+  .intro-screen .sprig{ font-size:1.6rem; margin-bottom:0.6rem; opacity:0.9; }
+  .intro-screen h1{
+    font-family:'Playfair Display', serif;
+    font-weight:500; font-style:italic;
+    color:var(--paper);
+    font-size:clamp(1.7rem, 4vw, 2.9rem);
+    margin:0 0 0.7rem;
+  }
+  .intro-screen p.tagline{
+    font-size:clamp(1.02rem, 1.6vw, 1.3rem);
+    color:var(--accent-soft);
+    letter-spacing:0.03em;
+    margin:0 0 3rem;
+  }
+
+  .open-letter-btn{
+    background:none;
+    border:1px solid rgba(217,190,151,0.5);
+    color:var(--accent-soft);
+    border-radius:999px;
+    padding:0.9rem 1.7rem;
+    font-family:'Cormorant Garamond', serif;
+    font-size:1.05rem;
+    letter-spacing:0.06em;
+    display:inline-flex;
+    align-items:center;
+    gap:0.6rem;
+    cursor:pointer;
+    transition:background 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+    animation:breathe 3.2s ease-in-out infinite;
+  }
+  .open-letter-btn:hover{
+    background:rgba(217,190,151,0.08);
+    border-color:var(--accent-soft);
+    transform:translateY(-2px);
+  }
+  .open-letter-btn:focus-visible{ outline:2px solid var(--accent-soft); outline-offset:3px; }
+  .open-letter-btn svg{ width:18px; height:18px; }
+  @keyframes breathe{
+    0%,100%{ box-shadow:0 0 0 0 rgba(217,190,151,0.0); }
+    50%{ box-shadow:0 0 0 6px rgba(217,190,151,0.06); }
+  }
+
+  body.letter-open .intro-screen{
+    opacity:0;
+    transform:translateY(-14px);
+    pointer-events:none;
+    position:absolute;
+    inset:0;
+  }
+
+  /* ---------------- LETTER SCREEN ---------------- */
+  .letter-screen{
+    position:relative;
+    z-index:2;
+    min-height:100vh;
+    display:none;
+    justify-content:center;
+    align-items:flex-start;
+    padding:9vh 5vw 12vh;
+    opacity:0;
+    transform:translateY(14px);
+    transition:opacity 0.8s ease 0.15s, transform 0.8s ease 0.15s;
+  }
+  body.letter-open .letter-screen{
+    display:flex;
+    opacity:1;
+    transform:translateY(0);
+  }
+
+  .close-btn{
+    position:fixed;
+    top:5vh;
+    left:5vw;
+    z-index:5;
+    background:none;
+    border:none;
+    color:var(--accent-soft);
+    font-family:'Cormorant Garamond', serif;
+    font-size:1.05rem;
+    letter-spacing:0.03em;
+    cursor:pointer;
+    display:none;
+    align-items:center;
+    gap:0.4rem;
+    opacity:0.75;
+    transition:opacity 0.3s ease;
+  }
+  .close-btn:hover{ opacity:1; }
+  .close-btn:focus-visible{ outline:2px solid var(--accent-soft); outline-offset:3px; }
+  body.letter-open .close-btn{ display:inline-flex; }
+
+  .paper{
+    position:relative;
+    width:min(640px, 100%);
+    background:var(--paper);
+    border-radius:3px 10px 4px 10px / 8px 3px 10px 4px;
+    box-shadow:0 2px 3px rgba(0,0,0,0.15), 0 18px 40px -14px rgba(0,0,0,0.55);
+    padding:clamp(2.2rem, 6vw, 4rem) clamp(1.6rem, 6vw, 3.4rem) clamp(2.6rem, 6vw, 4rem);
+  }
+
+  .letter-head{ text-align:center; margin-bottom:clamp(1.8rem, 5vw, 2.6rem); }
+  .letter-head .mark{ font-size:1.3rem; display:block; margin-bottom:0.4rem; }
+  .letter-head h2{
+    font-family:'Playfair Display', serif; font-weight:500; font-style:italic;
+    font-size:clamp(1.5rem, 3.6vw, 2.1rem); margin:0 0 0.4rem;
+  }
+  .letter-head .subtitle{
+    font-size:1rem; letter-spacing:0.05em; color:var(--accent); text-transform:uppercase;
+  }
+
+  .letter-body p{ font-size:clamp(1.15rem, 2vw, 1.38rem); line-height:1.85; margin:0 0 1.4rem; }
+  .letter-body p.short-line{ margin-bottom:0.4rem; }
+  .letter-body p.signoff{ margin-top:2rem; }
+  .letter-body .heart{ text-align:right; font-size:1.2rem; margin-top:0.8rem; }
+
+  /* ---------------- ANIMAL COMPANIONS ---------------- */
+  .companion{
+    position:fixed;
+    z-index:4;
+    width:64px;
+    cursor:pointer;
+    transition:transform 0.35s ease;
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,0.35));
+    display:none;
+  }
+  body.letter-open .companion{ display:block; }
+  .companion:hover{ transform:translateY(-3px) scale(1.05); }
+  .companion.bunny{ top:4vh; right:3vw; }
+  .companion.otter{ bottom:3.5vh; right:3vw; }
+  .companion.capybara{ bottom:3.5vh; left:3vw; width:76px; }
+  .companion.duck{ bottom:3.5vh; left:50%; transform:translateX(-50%); width:48px; }
+  .companion.duck:hover{ transform:translateX(-50%) translateY(-3px) scale(1.05); }
+  @media (max-width:720px){
+    .companion{ width:46px; }
+    .companion.capybara{ width:54px; }
+    .companion.duck{ width:36px; }
+    .companion.bunny{ top:2vh; }
+    .companion.otter, .companion.capybara{ bottom:1.5vh; }
+  }
+
+  .blinkable{ transform-origin:center; animation:blink 6s ease-in-out infinite; }
+  @keyframes blink{ 0%,92%,100%{transform:scaleY(1);} 95%{transform:scaleY(0.1);} }
+  .companion.bunny .ears{ transform-origin:bottom center; animation:earSway 5s ease-in-out infinite; }
+  @keyframes earSway{ 0%,100%{transform:rotate(0deg);} 50%{transform:rotate(3deg);} }
+  .companion svg{ animation:gentleBob 4.6s ease-in-out infinite; }
+  @keyframes gentleBob{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-3px);} }
+
+  .ear-wiggle .ears{ animation:earWiggle 0.7s ease !important; }
+  @keyframes earWiggle{ 0%,100%{transform:rotate(0deg);} 25%{transform:rotate(-10deg);} 50%{transform:rotate(10deg);} 75%{transform:rotate(-6deg);} }
+  .roll-react svg{ animation:rollOnce 0.9s ease !important; }
+  @keyframes rollOnce{ 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+  .wave-react svg{ animation:waveTilt 0.9s ease !important; }
+  @keyframes waveTilt{ 0%,100%{transform:rotate(0deg);} 30%{transform:rotate(-10deg);} 60%{transform:rotate(6deg);} }
+  .splash-drop{ animation:splashDrop 0.8s ease forwards; }
+  @keyframes splashDrop{ 0%{opacity:0; transform:translate(0,0) scale(0.4);} 40%{opacity:1;} 100%{opacity:0; transform:translate(var(--dx,10px), var(--dy,-14px)) scale(1);} }
+</style>
+</head>
+<body>
+
+  <div class="stars" id="stars"></div>
+  <div class="moon"></div>
+
+  <!-- INTRO / GATE -->
+  <section class="intro-screen">
+    <span class="sprig">🌼</span>
+    <h1>Happy National Girlfriend's Day</h1>
+    <p class="tagline">A quiet letter from my heart.</p>
+    <button class="open-letter-btn" id="openBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>
+      open the letter
+    </button>
+  </section>
+
+  <!-- CLOSE BUTTON -->
+  <button class="close-btn" id="closeBtn" type="button">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>
+    close
+  </button>
+
+  <!-- ANIMAL COMPANIONS -->
+  <div class="companion bunny" data-animal="bunny">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <g class="ears">
+        <ellipse cx="38" cy="20" rx="8" ry="24" fill="#F7F2E8"/>
+        <ellipse cx="38" cy="20" rx="4" ry="17" fill="#E3B9A8"/>
+        <ellipse cx="60" cy="18" rx="8" ry="24" fill="#F7F2E8"/>
+        <ellipse cx="60" cy="18" rx="4" ry="17" fill="#E3B9A8"/>
+      </g>
+      <ellipse cx="50" cy="66" rx="30" ry="26" fill="#F7F2E8"/>
+      <ellipse cx="50" cy="74" rx="14" ry="10" fill="#FDFAF3"/>
+      <g class="blinkable">
+        <circle cx="41" cy="62" r="3" fill="#3B2D2A"/>
+        <circle cx="59" cy="62" r="3" fill="#3B2D2A"/>
+      </g>
+      <ellipse cx="50" cy="70" rx="3" ry="2" fill="#D98E7B"/>
+    </svg>
+  </div>
+
+  <div class="companion otter" data-animal="otter">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="50" cy="58" rx="26" ry="30" fill="#8B6A4F"/>
+      <ellipse cx="50" cy="66" rx="14" ry="16" fill="#C9AC8B"/>
+      <circle cx="38" cy="40" r="5" fill="#8B6A4F"/>
+      <circle cx="62" cy="40" r="5" fill="#8B6A4F"/>
+      <g class="blinkable">
+        <circle cx="42" cy="52" r="2.6" fill="#3B2D2A"/>
+        <circle cx="58" cy="52" r="2.6" fill="#3B2D2A"/>
+      </g>
+      <ellipse cx="50" cy="58" rx="2.6" ry="2" fill="#3B2D2A"/>
+    </svg>
+  </div>
+
+  <div class="companion capybara" data-animal="capybara">
+    <svg viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="60" cy="55" rx="46" ry="28" fill="#A9805B"/>
+      <ellipse cx="30" cy="46" rx="20" ry="18" fill="#A9805B"/>
+      <ellipse cx="18" cy="34" rx="5" ry="6" fill="#8C6647"/>
+      <ellipse cx="34" cy="30" rx="5" ry="6" fill="#8C6647"/>
+      <g class="blinkable">
+        <circle cx="22" cy="44" r="2.4" fill="#3B2D2A"/>
+        <circle cx="35" cy="42" r="2.4" fill="#3B2D2A"/>
+      </g>
+      <ellipse cx="16" cy="52" rx="3.2" ry="2.2" fill="#3B2D2A"/>
+    </svg>
+  </div>
+
+  <div class="companion duck" data-animal="duck">
+    <svg viewBox="0 0 90 80" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="45" cy="52" rx="28" ry="20" fill="#E9C24E"/>
+      <circle cx="60" cy="32" r="16" fill="#E9C24E"/>
+      <path d="M74 34 q10 -1 10 4 q0 5 -10 3 z" fill="#E88B3B"/>
+      <g class="blinkable"><circle cx="64" cy="28" r="2.4" fill="#3B2D2A"/></g>
+    </svg>
+  </div>
+
+  <!-- LETTER SCREEN -->
+  <section class="letter-screen" id="letterScreen">
+    <div class="paper">
+      <div class="letter-head">
+        <span class="mark">🌙</span>
+        <h2>My Love,</h2>
+        <span class="subtitle">Happy National Girlfriend's Day</span>
+      </div>
+
+      <div class="letter-body">
+        <p>I know today is usually about celebrating love, but I also know that after yesterday, this letter carries a very different meaning. I'm not writing this because I expect today to make anything feel better, or because I hope these words will change how you feel. I'm writing because there are things I needed to tell you honestly.</p>
+
+        <p class="short-line">Yesterday, I raised my voice at you.</p>
+
+        <p>There isn't a version of that moment where it becomes acceptable. You did nothing to deserve it. Whatever was happening inside my head before that moment may explain why I felt overwhelmed, but it does not excuse the way I treated you. I made that choice, and I take complete responsibility for it.</p>
+
+        <p>More than anything, it hurts knowing that my actions reminded you of something you've already been through. I know the experiences you've had in your previous relationship weren't easy, and the last person I ever wanted to resemble was someone who made you feel afraid or unsafe. Seeing you cry because of something I did is a memory I don't think I'll forget anytime soon.</p>
+
+        <p>Even after I hurt you, you still cared about me. You noticed I hadn't eaten and quietly shared half of your lunch with me. Later, we went to Sun and Moon together, talked for a while, laughed a little on the way back after missing our trains, and somehow, despite everything, you still chose kindness. I don't take that lightly, and I don't deserve to forget it.</p>
+
+        <p>When you told me that you wouldn't forgive me immediately, I understood. When you said I would have to earn that forgiveness, I understood. And when you told me that you would never stay in a relationship where shouting or abusive behavior became normal, I respected that completely. Those aren't harsh words—they're healthy boundaries, and I'm glad you had the strength to say them.</p>
+
+        <p class="short-line">I'm not writing this letter to ask you to forgive me.</p>
+        <p class="short-line">I'm not writing it to convince you that everything will be okay.</p>
+        <p class="short-line">And I'm not writing it hoping that beautiful words will undo an ugly moment.</p>
+
+        <p class="short-line">Words are easy to write. Real change isn't.</p>
+
+        <p>The apology that matters isn't this letter. It's what I choose to do after today, tomorrow, next week, and every day that follows.</p>
+
+        <p>I can't promise that life will never become stressful again because it will. But I can promise that I will work on how I respond to those moments. I never want my frustration to become your burden again. I never want my voice to become something that makes you anxious. I want to become someone whose presence makes you feel safe, respected, and at peace.</p>
+
+        <p>Thank you for every conversation we've shared, every lunch we've had together, every walk to the station, every random laugh in the middle of an ordinary workday, every moment of patience, every act of kindness, and every bit of love you've given me so freely. You've brought warmth into my life in so many quiet ways, and I should have protected that far better than I did yesterday.</p>
+
+        <p>Whether rebuilding your trust takes weeks, months, or longer, I will respect your pace. I know trust isn't rebuilt through promises, letters, or one emotional conversation. It's rebuilt quietly, consistently, and through everyday actions.</p>
+
+        <p class="short-line">That's what I intend to do.</p>
+
+        <p class="short-line signoff">Happy National Girlfriend's Day.</p>
+        <p class="short-line">Thank you for reading this.</p>
+        <p class="heart">❤️</p>
+      </div>
+    </div>
+  </section>
+
+<script>
+  // stars: purely decorative, isolated
+  try{
+    const container = document.getElementById('stars');
+    for(let i=0;i<25;i++){
+      const s = document.createElement('span');
+      s.style.left = Math.random()*100+'vw';
+      s.style.top = Math.random()*60+'vh';
+      s.style.animationDelay = (Math.random()*4)+'s';
+      container.appendChild(s);
+    }
+  }catch(err){ /* decorative only */ }
+
+  // open / close gate: the core functionality, isolated in its own try block
+  try{
+    const openBtn = document.getElementById('openBtn');
+    const closeBtn = document.getElementById('closeBtn');
+    openBtn.addEventListener('click', ()=>{
+      document.body.classList.add('letter-open');
+      document.getElementById('letterScreen').scrollIntoView({behavior:'instant', block:'start'});
+      closeBtn.focus();
+    });
+    closeBtn.addEventListener('click', ()=>{
+      document.body.classList.remove('letter-open');
+      window.scrollTo({top:0, behavior:'instant'});
+      openBtn.focus();
+    });
+  }catch(err){
+    // fallback: if the gate script fails for any reason, just show the letter
+    document.body.classList.add('letter-open');
+  }
+
+  // animal click reactions: isolated, purely decorative
+  try{
+    const reactions = {
+      bunny:{ cls:'ear-wiggle', duration:800 },
+      otter:{ cls:'roll-react', duration:1000 },
+      capybara:{ cls:'wave-react', duration:1000 },
+      duck:{ cls:'roll-react', duration:900, drops:true }
+    };
+    document.querySelectorAll('.companion').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const r = reactions[el.dataset.animal];
+        if(!r) return;
+        if(r.drops){
+          const svg = el.querySelector('svg');
+          for(let i=0;i<4;i++){
+            const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+            dot.setAttribute('r', 2.2);
+            dot.setAttribute('cx', 45);
+            dot.setAttribute('cy', 55);
+            dot.setAttribute('fill', '#CFE3E8');
+            dot.classList.add('splash-drop');
+            dot.style.setProperty('--dx', (Math.random()*22-11)+'px');
+            dot.style.setProperty('--dy', (-(12+Math.random()*12))+'px');
+            svg.appendChild(dot);
+            setTimeout(()=>dot.remove(), 850);
+          }
+        }
+        el.classList.add(r.cls);
+        setTimeout(()=>el.classList.remove(r.cls), r.duration);
+      });
+    });
+  }catch(err){ /* decorative only */ }
+</script>
+</body>
+</html>
